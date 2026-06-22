@@ -9,7 +9,7 @@ import { insertUserSchema } from "../db/schema.js";
 import { config } from "../config.js";
 import { authLimiter } from "../middleware/rateLimiter.js";
 
-const router = Router();
+const router: import("express").Router = Router();
 
 const ACCESS_TOKEN_EXPIRY = "15m";
 const REFRESH_TOKEN_EXPIRY_DAYS = 7;
@@ -49,7 +49,7 @@ router.post("/register", authLimiter, async (req, res) => {
     return;
   }
 
-  const passwordHash = await bcrypt.hash(parsed.data.password, 12);
+  const passwordHash = await bcrypt.hash(String(parsed.data.password), 12);
   const [result] = await db.insert(users).values({
     email: parsed.data.email,
     name: parsed.data.name,
@@ -109,7 +109,7 @@ router.post("/refresh", async (req, res) => {
     .where(gt(refreshTokens.expiresAt, new Date()))
     .limit(100);
 
-  let matched = null;
+  let matched: any = null;
   for (const t of tokens) {
     if (await bcrypt.compare(rawRefresh, t.tokenHash)) {
       matched = t;
@@ -169,6 +169,60 @@ router.get("/me", async (req, res) => {
       return;
     }
     res.json({ id: user.id, email: user.email, name: user.name });
+  } catch {
+    res.status(401).json({ error: "Invalid token" });
+  }
+});
+
+
+router.put("/profile", async (req, res) => {
+  const token = req.cookies?.accessToken;
+  if (!token) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  try {
+    const decoded = jwt.verify(token, config.jwtSecret) as { userId: number };
+    const { name } = req.body;
+    if (!name || typeof name !== "string" || !name.trim()) {
+      res.status(400).json({ error: "Name is required" });
+      return;
+    }
+    const [updated] = await db.update(users)
+      .set({ name: name.trim() })
+      .where(eq(users.id, decoded.userId))
+      .returning();
+    res.json({ id: updated.id, email: updated.email, name: updated.name });
+  } catch {
+    res.status(401).json({ error: "Invalid token" });
+  }
+});
+
+router.put("/password", async (req, res) => {
+  const token = req.cookies?.accessToken;
+  if (!token) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  try {
+    const decoded = jwt.verify(token, config.jwtSecret) as { userId: number };
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ error: "currentPassword and newPassword are required" });
+      return;
+    }
+    if (newPassword.length < 6) {
+      res.status(400).json({ error: "New password must be at least 6 characters" });
+      return;
+    }
+    const [user] = await db.select().from(users).where(eq(users.id, decoded.userId)).limit(1);
+    if (!user || !(await bcrypt.compare(currentPassword, user.passwordHash))) {
+      res.status(401).json({ error: "Current password is incorrect" });
+      return;
+    }
+    const newHash = await bcrypt.hash(newPassword, 12);
+    await db.update(users).set({ passwordHash: newHash }).where(eq(users.id, decoded.userId));
+    res.json({ ok: true });
   } catch {
     res.status(401).json({ error: "Invalid token" });
   }

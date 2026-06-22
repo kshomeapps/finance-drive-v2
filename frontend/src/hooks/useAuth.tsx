@@ -1,23 +1,6 @@
-import { useState, useEffect } from 'react';
-
-const useAuth = () => {
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    setToken(localStorage.getItem('token'));
-  }, []);
-
-  const login = (newToken: string) => {
-    localStorage.setItem('token', newToken);
-    setToken(newToken);
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-  };
-
-  return { token, login, logout };
-};
-
-export default useAuth;
+// Re-export from AuthContext — the app uses httpOnly cookie-based auth
+export { useAuth } from "@/context/AuthContext";
+export default function useAuth() {
+  // Deprecated: use useAuth from @/context/AuthContext directly
+  return null;
+}

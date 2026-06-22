@@ -1,5 +1,5 @@
 import { sqliteTable, text, real, integer } from "drizzle-orm/sqlite-core";
-import { pgTable, text as pgText, real as pgReal, integer as pgInteger, timestamp as pgTimestamp } from "drizzle-orm/pg-core";
+import { pgTable, text as pgText, real as pgReal, integer as pgInteger, serial as pgSerial, timestamp as pgTimestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { config } from "../config.js";
@@ -13,7 +13,7 @@ const isPg = config.isPostgres;
 // Users
 export const users = isPg
   ? pgTable("users", {
-      id: pgInteger("id").primaryKey().generatedAlwaysAsIdentity(),
+      id: pgSerial("id").primaryKey(),
       email: pgText("email").notNull().unique(),
       passwordHash: pgText("password_hash").notNull(),
       name: pgText("name").notNull(),
@@ -30,7 +30,7 @@ export const users = isPg
 // Refresh Tokens (stored in DB for revocation support)
 export const refreshTokens = isPg
   ? pgTable("refresh_tokens", {
-      id: pgInteger("id").primaryKey().generatedAlwaysAsIdentity(),
+      id: pgSerial("id").primaryKey(),
       userId: pgInteger("user_id").notNull().references(() => (users as any).id),
       tokenHash: pgText("token_hash").notNull().unique(),
       expiresAt: pgTimestamp("expires_at", { withTimezone: true }).notNull(),

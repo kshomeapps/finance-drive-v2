@@ -1,0 +1,14 @@
+# Netlify 免費前端部署配置
+[build]
+  base = "frontend"
+  command = "pnpm install && pnpm run build"
+  publish = "frontend/dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA 路由重定向 — 所有路徑都指向 index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

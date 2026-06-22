@@ -6,7 +6,7 @@ import { books } from "../db/schema.js";
 import { insertBookSchema } from "../db/schema.js";
 import { authMiddleware, AuthRequest } from "../middleware/auth.js";
 
-const router = Router();
+const router: import("express").Router = Router();
 
 router.get("/", authMiddleware, async (req: AuthRequest, res) => {
   const rows = await db.select().from(books).where(eq(books.userId, req.userId!));

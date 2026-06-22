@@ -4,7 +4,7 @@ import { db } from "../db/index.js";
 import { transactions } from "../db/schema.js";
 import { authMiddleware, AuthRequest } from "../middleware/auth.js";
 
-const router = Router();
+const router: import("express").Router = Router();
 
 function bookFilter(bookId: string | null | undefined) {
   if (!bookId) return isNull(transactions.bookId);

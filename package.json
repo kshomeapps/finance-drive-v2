@@ -1,0 +1,15 @@
+{
+  "name": "finance-drive-v2",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter backend dev\" \"pnpm --filter frontend dev\"",
+    "build": "pnpm --filter backend build && pnpm --filter frontend build",
+    "start": "pnpm --filter backend start",
+    "db:migrate": "pnpm --filter backend db:migrate",
+    "db:push": "pnpm --filter backend db:push"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

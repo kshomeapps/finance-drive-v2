@@ -39,6 +39,7 @@ function Sidebar() {
   const navItem = (href: string, icon: React.ReactNode, label: string) => {
     const active = location === href;
     return (
+    <ErrorBoundary>
       <Link href={href}>
         <a
           className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
@@ -55,6 +56,7 @@ function Sidebar() {
   };
 
   return (
+    <ErrorBoundary>
     <aside className="w-52 min-h-screen bg-slate-800 flex flex-col text-white shrink-0">
       {/* Logo */}
       <div className="px-4 py-5 border-b border-white/10">
@@ -104,6 +106,7 @@ function Sidebar() {
         </button>
       </div>
     </aside>
+    </ErrorBoundary>
   );
 }
 
@@ -112,6 +115,7 @@ function AppRoutes() {
 
   if (isLoading) {
     return (
+    <ErrorBoundary>
       <div className="flex h-screen items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
@@ -120,6 +124,7 @@ function AppRoutes() {
 
   if (!user) {
     return (
+    <ErrorBoundary>
       <Switch>
         <Route path="/register" component={Register} />
         <Route path="/:rest*" component={Login} />
@@ -128,6 +133,7 @@ function AppRoutes() {
   }
 
   return (
+    <ErrorBoundary>
     <div className="flex min-h-screen bg-background">
       <Sidebar />
       <main className="flex-1 overflow-auto">
@@ -143,11 +149,25 @@ function AppRoutes() {
         </Switch>
       </main>
     </div>
+    </ErrorBoundary>
   );
+}
+
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() {
+    if (this.state.hasError) return <div className="p-4">系統載入出錯，請重新整理頁面。</div>;
+    return this.props.children;
+  }
 }
 
 export default function App() {
   return (
+    <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router>
@@ -155,5 +175,6 @@ export default function App() {
         </Router>
       </AuthProvider>
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 }

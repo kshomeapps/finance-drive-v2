@@ -1,6 +1,14 @@
 import type { PaginatedResponse, Transaction, Book, Summary, MonthlySummary, CategorySummary, User } from "@/types";
 
-const API_BASE = import.meta.env.VITE_API_URL || "";
+
+let API_BASE = import.meta.env.VITE_API_URL || "";
+if (API_BASE && !API_BASE.startsWith("http")) {
+  API_BASE = `https://${API_BASE}`;
+}
+if (API_BASE.endsWith("/")) {
+  API_BASE = API_BASE.slice(0, -1);
+}
+
 
 async function fetchApi(path: string, options?: RequestInit) {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -18,7 +26,7 @@ async function fetchApi(path: string, options?: RequestInit) {
       method: "POST",
       credentials: "include",
     });
-    if (refreshRes.ok) {
+    if (refreshRes.status === 200) {
       // Retry original request
       const retry = await fetch(`${API_BASE}${path}`, {
         ...options,

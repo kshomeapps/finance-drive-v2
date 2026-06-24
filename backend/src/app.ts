@@ -40,7 +40,9 @@ app.get("/api/health", (_req, res) => res.json({ status: "ok", env: config.nodeE
 if (config.isProduction) {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const possiblePaths = [
-    path.join(__dirname, "../../frontend/dist"),
+    path.join(__dirname, "../../../frontend/dist"),
+    path.join(process.cwd(), "frontend/dist"),
+    path.join(process.cwd(), "../frontend/dist"),
     path.join(__dirname, "../../../frontend/dist"),
     path.join(process.cwd(), "frontend/dist"),
     path.join(process.cwd(), "../frontend/dist")

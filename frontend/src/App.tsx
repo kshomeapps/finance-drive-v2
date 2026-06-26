@@ -1,24 +1,24 @@
-import { Route, Switch, Router, Link, useLocation } from "wouter";
+import React, { useState } from "react";
+import { Switch, Route, Link, useLocation, Router } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider, useAuth } from "./context/AuthContext";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
-import Transactions from "./pages/Transactions";
-import Books from "./pages/Books";
-import Statistics from "./pages/Statistics";
-import Settings from "./pages/Settings";
-import {
-  LayoutDashboard,
-  ArrowLeftRight,
-  BarChart2,
+import { 
+  LayoutDashboard, 
+  ArrowLeftRight, 
+  BarChart2, 
+  BookOpen, 
   Settings as SettingsIcon,
   LogOut,
-  BookOpen,
-  ChevronDown,
   Home,
+  ChevronDown
 } from "lucide-react";
-import { useState } from "react";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
+import Dashboard from "@/pages/Dashboard";
+import Transactions from "@/pages/Transactions";
+import Statistics from "@/pages/Statistics";
+import Books from "@/pages/Books";
+import Settings from "@/pages/Settings";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +31,18 @@ const queryClient = new QueryClient({
   },
 });
 
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() {
+    if (this.state.hasError) return <div className="p-4 text-center mt-20">系統載入出錯，請重新整理頁面。</div>;
+    return this.props.children;
+  }
+}
+
 function Sidebar() {
   const { user, logout } = useAuth();
   const [location] = useLocation();
@@ -39,7 +51,6 @@ function Sidebar() {
   const navItem = (href: string, icon: React.ReactNode, label: string) => {
     const active = location === href;
     return (
-    <ErrorBoundary>
       <Link href={href}>
         <a
           className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
@@ -56,7 +67,6 @@ function Sidebar() {
   };
 
   return (
-    <ErrorBoundary>
     <aside className="w-52 min-h-screen bg-slate-800 flex flex-col text-white shrink-0">
       {/* Logo */}
       <div className="px-4 py-5 border-b border-white/10">
@@ -106,7 +116,6 @@ function Sidebar() {
         </button>
       </div>
     </aside>
-    </ErrorBoundary>
   );
 }
 
@@ -115,7 +124,6 @@ function AppRoutes() {
 
   if (isLoading) {
     return (
-    <ErrorBoundary>
       <div className="flex h-screen items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
@@ -124,7 +132,6 @@ function AppRoutes() {
 
   if (!user) {
     return (
-    <ErrorBoundary>
       <Switch>
         <Route path="/register" component={Register} />
         <Route path="/:rest*" component={Login} />
@@ -133,7 +140,6 @@ function AppRoutes() {
   }
 
   return (
-    <ErrorBoundary>
     <div className="flex min-h-screen bg-background">
       <Sidebar />
       <main className="flex-1 overflow-auto">
@@ -149,32 +155,19 @@ function AppRoutes() {
         </Switch>
       </main>
     </div>
-    </ErrorBoundary>
   );
-}
-
-class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
-  constructor(props: any) {
-    super(props);
-    this.state = { hasError: false };
-  }
-  static getDerivedStateFromError() { return { hasError: true }; }
-  render() {
-    if (this.state.hasError) return <div className="p-4">系統載入出錯，請重新整理頁面。</div>;
-    return this.props.children;
-  }
 }
 
 export default function App() {
   return (
     <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
-      </AuthProvider>
-    </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </AuthProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }

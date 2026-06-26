@@ -17,7 +17,7 @@ const require = createRequire(import.meta.url);
 const app: import("express").Application = express();
 
 app.use(helmet({
-  contentSecurityPolicy: false, // 暫時關閉 CSP 以確保載入正常
+  contentSecurityPolicy: false,
 }));
 
 app.use(cors({
@@ -38,24 +38,9 @@ app.get("/api/health", (_req, res) => res.json({ status: "ok", env: config.nodeE
 
 // Serve frontend static files in production
 if (config.isProduction) {
-  const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const possiblePaths = [
-    path.join(__dirname, "../../../frontend/dist"),
-    path.join(process.cwd(), "frontend/dist"),
-    path.join(process.cwd(), "../frontend/dist"),
-    path.join(__dirname, "../../../frontend/dist"),
-    path.join(process.cwd(), "frontend/dist"),
-    path.join(process.cwd(), "../frontend/dist")
-  ];
-  
   const fs = require('fs');
-  let frontendDist = possiblePaths[0];
-  for (const p of possiblePaths) {
-    if (fs.existsSync(p)) {
-      frontendDist = p;
-      break;
-    }
-  }
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const frontendDist = path.resolve(__dirname, "../../frontend/dist");
   
   app.use(express.static(frontendDist));
   app.get("*", (req, res, next) => {
@@ -64,7 +49,7 @@ if (config.isProduction) {
     if (fs.existsSync(indexPath)) {
       res.sendFile(indexPath);
     } else {
-      next();
+      res.status(404).send("Frontend build not found. Please check deployment.");
     }
   });
 }
